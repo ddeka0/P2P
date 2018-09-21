@@ -1,0 +1,5 @@
+syntax = "proto3";
+package SeedInfoServer;
+message seedInfo {
+    map<string,string> seedList = 1;
+}
