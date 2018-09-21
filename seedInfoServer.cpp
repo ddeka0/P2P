@@ -72,7 +72,12 @@ int main () {
     SeedInfoServer::seedInfo SeedInfoList;
     auto& Map = *SeedInfoList.mutable_seedlist();
     Map["SeedServerA"] = "10.11.110.12";
-    
+    Map["SeedServerB"] = "10.11.110.12";
+    Map["SeedServerC"] = "10.11.110.12";
+    Map["SeedServerD"] = "10.11.110.12";
+    Map["SeedServerE"] = "10.11.110.12";
+    Map["SeedServerF"] = "10.11.110.12";
+    Map["SeedServerG"] = "10.11.110.12";
     while(true) {
         char buffer[MAX_BUFFER + 1];
         int len;
@@ -89,7 +94,14 @@ int main () {
             string protocol_buffer = SeedInfoList.SerializeAsString();
             sprintf(buffer, "%s", protocol_buffer.c_str());
             datalen = strlen(buffer);
-            ret = sctp_sendmsg(connSock, (void *) buffer, (size_t) datalen, NULL, 0, 0, 0, 0, 0, 0);
+            
+            ret = sendto(connSock, buffer, (size_t) datalen, 0,NULL,0);
+            
+            if(ret == -1) {
+                higLog("%s"," error in sctp_sendmsg");
+            }else {
+                cout << "ret "<<ret<< endl;
+            }
         }
         close(connSock);
     }
