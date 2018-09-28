@@ -8,8 +8,12 @@
 #include <ctime>
 #include <fstream>
 #include <google/protobuf/util/time_util.h>
+#include <google/protobuf/text_format.h>
 #include <iostream>
 #include <string>
+#include <arpa/inet.h>
+#include <google/protobuf/message.h>
+
 #include "logging.h"
 #include "seedInfo.pb.h"
 using namespace std;
@@ -25,7 +29,7 @@ int main () {
     struct sctp_sndrcvinfo sndrcvinfo;
     char buffer[MAX_BUFFER + 1];
     int datalen = 0;
-
+    
     listenSock = socket(AF_INET, SOCK_STREAM, IPPROTO_SCTP);
     if(listenSock == -1) {
         higLog("%s","Failed to create socket");
@@ -39,7 +43,7 @@ int main () {
 
     bzero ((void *) &servaddr, sizeof (servaddr));
     servaddr.sin_family = AF_INET;
-    servaddr.sin_addr.s_addr = htonl (INADDR_ANY);
+    servaddr.sin_addr.s_addr = inet_addr("10.129.135.192");
     servaddr.sin_port = htons (MY_PORT_NUM);
 
     ret = bind (listenSock, (struct sockaddr *) &servaddr, sizeof (servaddr));
@@ -68,11 +72,18 @@ int main () {
         close(listenSock);
         exit(1);
     }
+
+
+
+
+
+
     // create the List of seedNode  < Name , IPs >
     SeedInfoServer::seedInfo SeedInfoList;
     auto& Map = *SeedInfoList.mutable_seedlist();
-    Map["SeedServerA"] = "10.11.110.12";
-    
+    Map["SeedServer1"] = "10.129.135.161";
+
+
     while(true) {
         char buffer[MAX_BUFFER + 1];
         int len;
@@ -89,7 +100,16 @@ int main () {
             string protocol_buffer = SeedInfoList.SerializeAsString();
             sprintf(buffer, "%s", protocol_buffer.c_str());
             datalen = strlen(buffer);
-            ret = sctp_sendmsg(connSock, (void *) buffer, (size_t) datalen, NULL, 0, 0, 0, 0, 0, 0);
+            ret = sendto(connSock, buffer, (size_t) datalen, 0,NULL,0);
+            if(ret == -1) {
+                higLog("%s"," error in sctp_sendmsg");
+            }else {
+                cout <<"Send the following list to the client"<<endl;
+                /*  TODO get the IP address of the client also
+                    from the accept call and print it here 
+                */
+                cout << SeedInfoList.DebugString() << endl;
+            }
         }
         close(connSock);
     }
