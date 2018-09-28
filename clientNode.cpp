@@ -8,6 +8,7 @@
 #define MAX_BUFFER              3000
 #define MY_PORT_NUM             54145
 #define MAX_BACKLOG_REQUEST     100 
+#include <netinet/in.h>
 
 /* This can be changed to suit the need and should be 
                             same in server and client */
