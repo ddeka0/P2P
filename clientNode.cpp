@@ -10,6 +10,8 @@
 #define MAX_BACKLOG_REQUEST     100 
 #include <netinet/in.h>
 
+
+
 /* This can be changed to suit the need and should be 
                             same in server and client */
 #include "logging.h"
@@ -18,16 +20,20 @@
 using namespace std;
 // using google::protobuf;
 
+
+
+
 bool running = false;
 #define MSG_TYPE_GIVE_ME_PEER_LIST  1
 #define MSG_TYPE_YOU_ARE_MY_PEER    2
 #define MSG_TYPE_DATA               3
-#define WAIT_FOR_SERVER_TO_START    2
+#define WAIT_FOR_MY_SERVER_TO_START 2
 
 #define FAILURE                     -1
 #define SUCCESS                     0
 string myIp = "10.129.135.201";/* FIXME : get my own IP address automatically */
 map<string,string> seedListMap;
+set<string> listOfMyPeers;
 
 void receiveAndSend() {
     // this is also an infinite loop function
@@ -41,17 +47,7 @@ void receiveAndSend() {
         
     }  
 }
-void generateMsgAndSend() {
-    // this is also an infinite loop function
-    // this thread will loop in a while loop
-    // it will do the following task
-    // 1. create message after a time period
-    // 2. store it in the data structure
-    // 3. send it to the
-    while(running) {
-    
-    } 
-}
+
 
 int getSeedNodeList() {
     LOG_ENTRY;
@@ -103,6 +99,9 @@ int getSeedNodeList() {
         string protocol_buffer = buffer;
         SeedInfoList.ParseFromString(protocol_buffer);
         auto &Map = SeedInfoList.seedlist();
+        /* FIXME is it required to take a lock 
+            before accessing the seedListMap here
+        */
         for(auto & e: Map) {
             seedListMap[e.first] =  e.second;
         }
@@ -115,7 +114,8 @@ int getSeedNodeList() {
     LOG_EXIT;
     return SUCCESS;
 }
-int connectToASeedNode(int &connSock,string serverIp) {
+
+int connectToASeedNode(int &connSock,string seedNodeServerIp) {
     /*
         1. Create socket : store the socketFD in the connSock arg
         2. Connect to the serverIp (it is a seedNode server)
@@ -136,7 +136,7 @@ int connectToASeedNode(int &connSock,string serverIp) {
     bzero ((void *) &servaddr, sizeof (servaddr));
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons (MY_PORT_NUM);
-    servaddr.sin_addr.s_addr = inet_addr("10.129.135.192");
+    servaddr.sin_addr.s_addr = inet_addr(seedNodeServerIp.c_str());
     ret = connect (connSock, (struct sockaddr *) &servaddr, sizeof (servaddr));
     
     if (ret == -1) {
@@ -149,6 +149,47 @@ int connectToASeedNode(int &connSock,string serverIp) {
     }
     return SUCCESS;
 }
+
+void PeerTask(string peerAddr) {
+    LOG_ENTRY;
+    /* act as a client */
+    int connSock, in, i, ret, flags;
+    struct sockaddr_in servaddr;
+    struct sctp_status status;
+    struct sctp_sndrcvinfo sndrcvinfo;
+    char buffer[MAX_BUFFER + 1];
+    int datalen = 0;
+
+    connSock = socket (AF_INET, SOCK_STREAM, IPPROTO_SCTP);
+    if (connSock == -1) {
+        printf("Socket creation failed\n");
+        perror("socket()");
+        exit(1);
+    }
+    bzero ((void *) &servaddr, sizeof (servaddr));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port = htons (MY_PORT_NUM);
+    servaddr.sin_addr.s_addr = inet_addr(peerAddr.c_str());
+    ret = connect (connSock, (struct sockaddr *) &servaddr, sizeof (servaddr));
+    
+    if (ret == -1) {
+        printf("Connection failed\n");
+        perror("connect()");
+        close(connSock);
+        exit(1);
+    }else {
+        lowLog("%s"," connection successfull with the peer\n");
+    }
+    while(true) {
+        /*
+            1. generate one message
+            2. send to this peer
+            3. Store the message in the data structure
+        */
+    }
+    LOG_EXIT;
+}
+
 int getpeerListFromSeedNodes() {
     LOG_ENTRY;
     /* iterate through all the seed nodes provided by seedInfoServer
@@ -161,7 +202,7 @@ int getpeerListFromSeedNodes() {
         size_t datalen = 0;
         if(e.second != myIp) {
             if(connectToASeedNode(connSock,e.second) < 0 ) {
-                higLog("%s"," connect to " + e.second + " failed" );
+                higLog("%s"," connect to " + e.second + " failed");
                 /* FIXME later */
             }
             /* preprare a message : give peer list */
@@ -177,34 +218,50 @@ int getpeerListFromSeedNodes() {
             /* expecting a reply from the seedNode */
             memset(buffer,0,sizeof(buffer));
             in = recvfrom(connSock, buffer, sizeof (buffer), 0, NULL, NULL);
-            if(in == -1 ){
+            if(in == -1 ) {
                 cout << errno << endl;
                 higLog("%s"," sctp_recvmsg() failed");
             }
             // Parse this message and get the list of peers
-            // add this to the totalList
-        }
-        // final lise of peers [ includes seedNode as well as normal client ]
-        // Select any 4 of them randomly
-        // Send "you are my peer" message to the 4 selected peers
-        // start separate thread (4) for all of them
-        for(int peer = 1;peer <= 4;peer++) {
-            std::thread handlePeerThread(PeerTask,newConnSock,IpAddr);
+            // Add this to the totalList
         }
     }
     return SUCCESS;
 }
+void sendPeerList() {
+    LOG_ENTRY;
+    /* do not create thread */
+
+
+
+    LOG_EXIT;
+}
+void acceptPeerRequstAndProcess() {
+    LOG_ENTRY;
+    /* create a thread to receive the messages coming from this peer */
+
+    LOG_EXIT;    
+}
+
 
 
 int processRequest(string requestBuffer) {
-
-
+    LOG_ENTRY;
+    MP::BMessage msg;
+    msg.ParseFromString(requestBuffer);
+    int type = msg.typeOfMessage();
+    if(type == MSG_TYPE_GIVE_ME_PEER_LIST) {
+        sendPeerList();
+    }else if(type == MSG_TYPE_YOU_ARE_MY_PEER) {
+        acceptPeerRequstAndProcess();
+    }
+    LOG_EXIT;
     return SUCCESS;
 }
 
 void executeOwnWork() {
 
-    sleep(WAIT_FOR_SERVER_TO_START);
+    sleep(WAIT_FOR_MY_SERVER_TO_START);
     /*
         ANY PEER : seedNode or normal client must ask for seedNodeList from 
         seedInfoServer
@@ -232,29 +289,29 @@ void executeOwnWork() {
        Now we need to select 4 peers randomly
     */
 
+    // final lise of peers [ includes seedNode as well as normal client ]
+    // Select any 4 of them randomly
+    // Send "you are my peer" message to the 4 selected peers
+    // start separate thread (4) for all of them
+    // those threads will do the following:
+    /*
+        1. Create a TCP connection with the peerAddr
+        2. Loop in a infite loop
+        3. Generate BITCOIN transaction Message at an interval of 5 sec.
+        4. send these message to the peerAddr
+    */
     for(int peer = 1;peer <= 4;peer++) {
-        std::thread generateMessageAndForward(generateMsgAndSend);
-    
+        /* will it better to create just one thread : and that will broadcast the
+         messages to all 4 peers
+        */
+        std::thread handlePeerThread(PeerTask,peerAddr);
     }
-
-
-
-
-
-
-
-
-
+    LOG_EXIT;
 }
-
-
-
-
-
 
 int main (int argc, char* argv[]) {
     LOG_ENTRY;
-    std::thread myTask(executeOwnWork);
+    std::thread myTask(executeOwnWork); /* detach or join : decide and fix later */
     
     /*
         First create a server socket that listens in a while loop
