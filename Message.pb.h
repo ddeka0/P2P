@@ -29,6 +29,9 @@
 #include <google/protobuf/message.h>
 #include <google/protobuf/repeated_field.h>  // IWYU pragma: export
 #include <google/protobuf/extension_set.h>  // IWYU pragma: export
+#include <google/protobuf/map.h>  // IWYU pragma: export
+#include <google/protobuf/map_entry.h>
+#include <google/protobuf/map_field_inl.h>
 #include <google/protobuf/unknown_field_set.h>
 // @@protoc_insertion_point(includes)
 #define PROTOBUF_INTERNAL_EXPORT_protobuf_Message_2eproto 
@@ -38,7 +41,7 @@ namespace protobuf_Message_2eproto {
 struct TableStruct {
   static const ::google::protobuf::internal::ParseTableField entries[];
   static const ::google::protobuf::internal::AuxillaryParseTableField aux[];
-  static const ::google::protobuf::internal::ParseTable schema[1];
+  static const ::google::protobuf::internal::ParseTable schema[2];
   static const ::google::protobuf::internal::FieldMetadata field_metadata[];
   static const ::google::protobuf::internal::SerializationTable serialization_table[];
   static const ::google::protobuf::uint32 offsets[];
@@ -49,15 +52,40 @@ namespace MP {
 class BMessage;
 class BMessageDefaultTypeInternal;
 extern BMessageDefaultTypeInternal _BMessage_default_instance_;
+class BMessage_NodeListEntry_DoNotUse;
+class BMessage_NodeListEntry_DoNotUseDefaultTypeInternal;
+extern BMessage_NodeListEntry_DoNotUseDefaultTypeInternal _BMessage_NodeListEntry_DoNotUse_default_instance_;
 }  // namespace MP
 namespace google {
 namespace protobuf {
 template<> ::MP::BMessage* Arena::CreateMaybeMessage<::MP::BMessage>(Arena*);
+template<> ::MP::BMessage_NodeListEntry_DoNotUse* Arena::CreateMaybeMessage<::MP::BMessage_NodeListEntry_DoNotUse>(Arena*);
 }  // namespace protobuf
 }  // namespace google
 namespace MP {
 
 // ===================================================================
+
+class BMessage_NodeListEntry_DoNotUse : public ::google::protobuf::internal::MapEntry<BMessage_NodeListEntry_DoNotUse, 
+    ::std::string, ::std::string,
+    ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+    ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+    0 > {
+public:
+  typedef ::google::protobuf::internal::MapEntry<BMessage_NodeListEntry_DoNotUse, 
+    ::std::string, ::std::string,
+    ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+    ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+    0 > SuperType;
+  BMessage_NodeListEntry_DoNotUse();
+  BMessage_NodeListEntry_DoNotUse(::google::protobuf::Arena* arena);
+  void MergeFrom(const BMessage_NodeListEntry_DoNotUse& other);
+  static const BMessage_NodeListEntry_DoNotUse* internal_default_instance() { return reinterpret_cast<const BMessage_NodeListEntry_DoNotUse*>(&_BMessage_NodeListEntry_DoNotUse_default_instance_); }
+  void MergeFrom(const ::google::protobuf::Message& other) final;
+  ::google::protobuf::Metadata GetMetadata() const;
+};
+
+// -------------------------------------------------------------------
 
 class BMessage : public ::google::protobuf::Message /* @@protoc_insertion_point(class_definition:MP.BMessage) */ {
  public:
@@ -94,7 +122,7 @@ class BMessage : public ::google::protobuf::Message /* @@protoc_insertion_point(
                &_BMessage_default_instance_);
   }
   static constexpr int kIndexInFileMessages =
-    0;
+    1;
 
   void Swap(BMessage* other);
   friend void swap(BMessage& a, BMessage& b) {
@@ -144,7 +172,17 @@ class BMessage : public ::google::protobuf::Message /* @@protoc_insertion_point(
 
   // nested types ----------------------------------------------------
 
+
   // accessors -------------------------------------------------------
+
+  // map<string, string> nodeList = 3;
+  int nodelist_size() const;
+  void clear_nodelist();
+  static const int kNodeListFieldNumber = 3;
+  const ::google::protobuf::Map< ::std::string, ::std::string >&
+      nodelist() const;
+  ::google::protobuf::Map< ::std::string, ::std::string >*
+      mutable_nodelist();
 
   // string msg = 2;
   void clear_msg();
@@ -170,6 +208,12 @@ class BMessage : public ::google::protobuf::Message /* @@protoc_insertion_point(
  private:
 
   ::google::protobuf::internal::InternalMetadataWithArena _internal_metadata_;
+  ::google::protobuf::internal::MapField<
+      BMessage_NodeListEntry_DoNotUse,
+      ::std::string, ::std::string,
+      ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+      ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+      0 > nodelist_;
   ::google::protobuf::internal::ArenaStringPtr msg_;
   ::google::protobuf::int32 typeofmessage_;
   mutable ::google::protobuf::internal::CachedSize _cached_size_;
@@ -184,6 +228,8 @@ class BMessage : public ::google::protobuf::Message /* @@protoc_insertion_point(
   #pragma GCC diagnostic push
   #pragma GCC diagnostic ignored "-Wstrict-aliasing"
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 // BMessage
 
 // int32 typeOfMessage = 1;
@@ -253,9 +299,29 @@ inline void BMessage::set_allocated_msg(::std::string* msg) {
   // @@protoc_insertion_point(field_set_allocated:MP.BMessage.msg)
 }
 
+// map<string, string> nodeList = 3;
+inline int BMessage::nodelist_size() const {
+  return nodelist_.size();
+}
+inline void BMessage::clear_nodelist() {
+  nodelist_.Clear();
+}
+inline const ::google::protobuf::Map< ::std::string, ::std::string >&
+BMessage::nodelist() const {
+  // @@protoc_insertion_point(field_map:MP.BMessage.nodeList)
+  return nodelist_.GetMap();
+}
+inline ::google::protobuf::Map< ::std::string, ::std::string >*
+BMessage::mutable_nodelist() {
+  // @@protoc_insertion_point(field_mutable_map:MP.BMessage.nodeList)
+  return nodelist_.MutableMap();
+}
+
 #ifdef __GNUC__
   #pragma GCC diagnostic pop
 #endif  // __GNUC__
+// -------------------------------------------------------------------
+
 
 // @@protoc_insertion_point(namespace_scope)
 

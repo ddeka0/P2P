@@ -26,10 +26,8 @@ bool running = false;
 
 #define FAILURE                     -1
 #define SUCCESS                     0
-string myIp = "10.129.135.201";
+string myIp = "10.129.135.201";/* FIXME : get my own IP address automatically */
 map<string,string> seedListMap;
-
-
 
 void receiveAndSend() {
     // this is also an infinite loop function
@@ -84,9 +82,17 @@ int getSeedNodeList() {
     }else {
         lowLog("%s"," connection successfull\n");
     }
-    /* FIXME try multiple times : untill one read sucess */
-    in = recvfrom(connSock, buffer, sizeof (buffer), 0, NULL, NULL);
-    if(in == -1 ) {
+    /* FIXME try multiple times : untill one read sucess
+       ( single try may fail with error code 11 resource not available )
+       Because we need only one recv success from the seedInfoServer
+       We are using sctp : therefore we willl recv the entire message in one go
+    */
+    in = recvfrom(connSock, buffer, sizeof (buffer), 0, NULL, NULL); 
+    /*  FIXME 
+        use proper functions
+        get the IP from the sender and print it to the console
+    */
+    if(in == -1) {
         /* FIXME : print nicely */
         cout << errno << endl;
         higLog("%s"," sctp_recvmsg() failed");

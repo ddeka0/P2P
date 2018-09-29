@@ -19,7 +19,15 @@
 #endif
 // @@protoc_insertion_point(includes)
 
+namespace protobuf_Message_2eproto {
+extern PROTOBUF_INTERNAL_EXPORT_protobuf_Message_2eproto ::google::protobuf::internal::SCCInfo<0> scc_info_BMessage_NodeListEntry_DoNotUse;
+}  // namespace protobuf_Message_2eproto
 namespace MP {
+class BMessage_NodeListEntry_DoNotUseDefaultTypeInternal {
+ public:
+  ::google::protobuf::internal::ExplicitlyConstructed<BMessage_NodeListEntry_DoNotUse>
+      _instance;
+} _BMessage_NodeListEntry_DoNotUse_default_instance_;
 class BMessageDefaultTypeInternal {
  public:
   ::google::protobuf::internal::ExplicitlyConstructed<BMessage>
@@ -27,6 +35,19 @@ class BMessageDefaultTypeInternal {
 } _BMessage_default_instance_;
 }  // namespace MP
 namespace protobuf_Message_2eproto {
+static void InitDefaultsBMessage_NodeListEntry_DoNotUse() {
+  GOOGLE_PROTOBUF_VERIFY_VERSION;
+
+  {
+    void* ptr = &::MP::_BMessage_NodeListEntry_DoNotUse_default_instance_;
+    new (ptr) ::MP::BMessage_NodeListEntry_DoNotUse();
+  }
+  ::MP::BMessage_NodeListEntry_DoNotUse::InitAsDefaultInstance();
+}
+
+::google::protobuf::internal::SCCInfo<0> scc_info_BMessage_NodeListEntry_DoNotUse =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsBMessage_NodeListEntry_DoNotUse}, {}};
+
 static void InitDefaultsBMessage() {
   GOOGLE_PROTOBUF_VERIFY_VERSION;
 
@@ -38,16 +59,27 @@ static void InitDefaultsBMessage() {
   ::MP::BMessage::InitAsDefaultInstance();
 }
 
-::google::protobuf::internal::SCCInfo<0> scc_info_BMessage =
-    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 0, InitDefaultsBMessage}, {}};
+::google::protobuf::internal::SCCInfo<1> scc_info_BMessage =
+    {{ATOMIC_VAR_INIT(::google::protobuf::internal::SCCInfoBase::kUninitialized), 1, InitDefaultsBMessage}, {
+      &protobuf_Message_2eproto::scc_info_BMessage_NodeListEntry_DoNotUse.base,}};
 
 void InitDefaults() {
+  ::google::protobuf::internal::InitSCC(&scc_info_BMessage_NodeListEntry_DoNotUse.base);
   ::google::protobuf::internal::InitSCC(&scc_info_BMessage.base);
 }
 
-::google::protobuf::Metadata file_level_metadata[1];
+::google::protobuf::Metadata file_level_metadata[2];
 
 const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::MP::BMessage_NodeListEntry_DoNotUse, _has_bits_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::MP::BMessage_NodeListEntry_DoNotUse, _internal_metadata_),
+  ~0u,  // no _extensions_
+  ~0u,  // no _oneof_case_
+  ~0u,  // no _weak_field_map_
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::MP::BMessage_NodeListEntry_DoNotUse, key_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::MP::BMessage_NodeListEntry_DoNotUse, value_),
+  0,
+  1,
   ~0u,  // no _has_bits_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::MP::BMessage, _internal_metadata_),
   ~0u,  // no _extensions_
@@ -55,12 +87,15 @@ const ::google::protobuf::uint32 TableStruct::offsets[] GOOGLE_PROTOBUF_ATTRIBUT
   ~0u,  // no _weak_field_map_
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::MP::BMessage, typeofmessage_),
   GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::MP::BMessage, msg_),
+  GOOGLE_PROTOBUF_GENERATED_MESSAGE_FIELD_OFFSET(::MP::BMessage, nodelist_),
 };
 static const ::google::protobuf::internal::MigrationSchema schemas[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-  { 0, -1, sizeof(::MP::BMessage)},
+  { 0, 7, sizeof(::MP::BMessage_NodeListEntry_DoNotUse)},
+  { 9, -1, sizeof(::MP::BMessage)},
 };
 
 static ::google::protobuf::Message const * const file_default_instances[] = {
+  reinterpret_cast<const ::google::protobuf::Message*>(&::MP::_BMessage_NodeListEntry_DoNotUse_default_instance_),
   reinterpret_cast<const ::google::protobuf::Message*>(&::MP::_BMessage_default_instance_),
 };
 
@@ -79,17 +114,20 @@ void protobuf_AssignDescriptorsOnce() {
 void protobuf_RegisterTypes(const ::std::string&) GOOGLE_PROTOBUF_ATTRIBUTE_COLD;
 void protobuf_RegisterTypes(const ::std::string&) {
   protobuf_AssignDescriptorsOnce();
-  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 1);
+  ::google::protobuf::internal::RegisterAllTypes(file_level_metadata, 2);
 }
 
 void AddDescriptorsImpl() {
   InitDefaults();
   static const char descriptor[] GOOGLE_PROTOBUF_ATTRIBUTE_SECTION_VARIABLE(protodesc_cold) = {
-      "\n\rMessage.proto\022\002MP\".\n\010BMessage\022\025\n\rtypeO"
-      "fMessage\030\001 \001(\005\022\013\n\003msg\030\002 \001(\tb\006proto3"
+      "\n\rMessage.proto\022\002MP\"\215\001\n\010BMessage\022\025\n\rtype"
+      "OfMessage\030\001 \001(\005\022\013\n\003msg\030\002 \001(\t\022,\n\010nodeList"
+      "\030\003 \003(\0132\032.MP.BMessage.NodeListEntry\032/\n\rNo"
+      "deListEntry\022\013\n\003key\030\001 \001(\t\022\r\n\005value\030\002 \001(\t:"
+      "\0028\001b\006proto3"
   };
   ::google::protobuf::DescriptorPool::InternalAddGeneratedFile(
-      descriptor, 75);
+      descriptor, 171);
   ::google::protobuf::MessageFactory::InternalRegisterGeneratedFile(
     "Message.proto", &protobuf_RegisterTypes);
 }
@@ -109,11 +147,29 @@ namespace MP {
 
 // ===================================================================
 
+BMessage_NodeListEntry_DoNotUse::BMessage_NodeListEntry_DoNotUse() {}
+BMessage_NodeListEntry_DoNotUse::BMessage_NodeListEntry_DoNotUse(::google::protobuf::Arena* arena) : SuperType(arena) {}
+void BMessage_NodeListEntry_DoNotUse::MergeFrom(const BMessage_NodeListEntry_DoNotUse& other) {
+  MergeFromInternal(other);
+}
+::google::protobuf::Metadata BMessage_NodeListEntry_DoNotUse::GetMetadata() const {
+  ::protobuf_Message_2eproto::protobuf_AssignDescriptorsOnce();
+  return ::protobuf_Message_2eproto::file_level_metadata[0];
+}
+void BMessage_NodeListEntry_DoNotUse::MergeFrom(
+    const ::google::protobuf::Message& other) {
+  ::google::protobuf::Message::MergeFrom(other);
+}
+
+
+// ===================================================================
+
 void BMessage::InitAsDefaultInstance() {
 }
 #if !defined(_MSC_VER) || _MSC_VER >= 1900
 const int BMessage::kTypeOfMessageFieldNumber;
 const int BMessage::kMsgFieldNumber;
+const int BMessage::kNodeListFieldNumber;
 #endif  // !defined(_MSC_VER) || _MSC_VER >= 1900
 
 BMessage::BMessage()
@@ -127,6 +183,7 @@ BMessage::BMessage(const BMessage& from)
   : ::google::protobuf::Message(),
       _internal_metadata_(NULL) {
   _internal_metadata_.MergeFrom(from._internal_metadata_);
+  nodelist_.MergeFrom(from.nodelist_);
   msg_.UnsafeSetDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   if (from.msg().size() > 0) {
     msg_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.msg_);
@@ -169,6 +226,7 @@ void BMessage::Clear() {
   // Prevent compiler warnings about cached_has_bits being unused
   (void) cached_has_bits;
 
+  nodelist_.Clear();
   msg_.ClearToEmptyNoArena(&::google::protobuf::internal::GetEmptyStringAlreadyInited());
   typeofmessage_ = 0;
   _internal_metadata_.Clear();
@@ -208,6 +266,33 @@ bool BMessage::MergePartialFromCodedStream(
             this->msg().data(), static_cast<int>(this->msg().length()),
             ::google::protobuf::internal::WireFormatLite::PARSE,
             "MP.BMessage.msg"));
+        } else {
+          goto handle_unusual;
+        }
+        break;
+      }
+
+      // map<string, string> nodeList = 3;
+      case 3: {
+        if (static_cast< ::google::protobuf::uint8>(tag) ==
+            static_cast< ::google::protobuf::uint8>(26u /* 26 & 0xFF */)) {
+          BMessage_NodeListEntry_DoNotUse::Parser< ::google::protobuf::internal::MapField<
+              BMessage_NodeListEntry_DoNotUse,
+              ::std::string, ::std::string,
+              ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+              ::google::protobuf::internal::WireFormatLite::TYPE_STRING,
+              0 >,
+            ::google::protobuf::Map< ::std::string, ::std::string > > parser(&nodelist_);
+          DO_(::google::protobuf::internal::WireFormatLite::ReadMessageNoVirtual(
+              input, &parser));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            parser.key().data(), static_cast<int>(parser.key().length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "MP.BMessage.NodeListEntry.key"));
+          DO_(::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+            parser.value().data(), static_cast<int>(parser.value().length()),
+            ::google::protobuf::internal::WireFormatLite::PARSE,
+            "MP.BMessage.NodeListEntry.value"));
         } else {
           goto handle_unusual;
         }
@@ -255,6 +340,59 @@ void BMessage::SerializeWithCachedSizes(
       2, this->msg(), output);
   }
 
+  // map<string, string> nodeList = 3;
+  if (!this->nodelist().empty()) {
+    typedef ::google::protobuf::Map< ::std::string, ::std::string >::const_pointer
+        ConstPtr;
+    typedef ConstPtr SortItem;
+    typedef ::google::protobuf::internal::CompareByDerefFirst<SortItem> Less;
+    struct Utf8Check {
+      static void Check(ConstPtr p) {
+        ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          p->first.data(), static_cast<int>(p->first.length()),
+          ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+          "MP.BMessage.NodeListEntry.key");
+        ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          p->second.data(), static_cast<int>(p->second.length()),
+          ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+          "MP.BMessage.NodeListEntry.value");
+      }
+    };
+
+    if (output->IsSerializationDeterministic() &&
+        this->nodelist().size() > 1) {
+      ::std::unique_ptr<SortItem[]> items(
+          new SortItem[this->nodelist().size()]);
+      typedef ::google::protobuf::Map< ::std::string, ::std::string >::size_type size_type;
+      size_type n = 0;
+      for (::google::protobuf::Map< ::std::string, ::std::string >::const_iterator
+          it = this->nodelist().begin();
+          it != this->nodelist().end(); ++it, ++n) {
+        items[static_cast<ptrdiff_t>(n)] = SortItem(&*it);
+      }
+      ::std::sort(&items[0], &items[static_cast<ptrdiff_t>(n)], Less());
+      ::std::unique_ptr<BMessage_NodeListEntry_DoNotUse> entry;
+      for (size_type i = 0; i < n; i++) {
+        entry.reset(nodelist_.NewEntryWrapper(
+            items[static_cast<ptrdiff_t>(i)]->first, items[static_cast<ptrdiff_t>(i)]->second));
+        ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+            3, *entry, output);
+        Utf8Check::Check(items[static_cast<ptrdiff_t>(i)]);
+      }
+    } else {
+      ::std::unique_ptr<BMessage_NodeListEntry_DoNotUse> entry;
+      for (::google::protobuf::Map< ::std::string, ::std::string >::const_iterator
+          it = this->nodelist().begin();
+          it != this->nodelist().end(); ++it) {
+        entry.reset(nodelist_.NewEntryWrapper(
+            it->first, it->second));
+        ::google::protobuf::internal::WireFormatLite::WriteMessageMaybeToArray(
+            3, *entry, output);
+        Utf8Check::Check(&*it);
+      }
+    }
+  }
+
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     ::google::protobuf::internal::WireFormat::SerializeUnknownFields(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), output);
@@ -285,6 +423,63 @@ void BMessage::SerializeWithCachedSizes(
         2, this->msg(), target);
   }
 
+  // map<string, string> nodeList = 3;
+  if (!this->nodelist().empty()) {
+    typedef ::google::protobuf::Map< ::std::string, ::std::string >::const_pointer
+        ConstPtr;
+    typedef ConstPtr SortItem;
+    typedef ::google::protobuf::internal::CompareByDerefFirst<SortItem> Less;
+    struct Utf8Check {
+      static void Check(ConstPtr p) {
+        ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          p->first.data(), static_cast<int>(p->first.length()),
+          ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+          "MP.BMessage.NodeListEntry.key");
+        ::google::protobuf::internal::WireFormatLite::VerifyUtf8String(
+          p->second.data(), static_cast<int>(p->second.length()),
+          ::google::protobuf::internal::WireFormatLite::SERIALIZE,
+          "MP.BMessage.NodeListEntry.value");
+      }
+    };
+
+    if (deterministic &&
+        this->nodelist().size() > 1) {
+      ::std::unique_ptr<SortItem[]> items(
+          new SortItem[this->nodelist().size()]);
+      typedef ::google::protobuf::Map< ::std::string, ::std::string >::size_type size_type;
+      size_type n = 0;
+      for (::google::protobuf::Map< ::std::string, ::std::string >::const_iterator
+          it = this->nodelist().begin();
+          it != this->nodelist().end(); ++it, ++n) {
+        items[static_cast<ptrdiff_t>(n)] = SortItem(&*it);
+      }
+      ::std::sort(&items[0], &items[static_cast<ptrdiff_t>(n)], Less());
+      ::std::unique_ptr<BMessage_NodeListEntry_DoNotUse> entry;
+      for (size_type i = 0; i < n; i++) {
+        entry.reset(nodelist_.NewEntryWrapper(
+            items[static_cast<ptrdiff_t>(i)]->first, items[static_cast<ptrdiff_t>(i)]->second));
+        target = ::google::protobuf::internal::WireFormatLite::
+                   InternalWriteMessageNoVirtualToArray(
+                       3, *entry, deterministic, target);
+;
+        Utf8Check::Check(items[static_cast<ptrdiff_t>(i)]);
+      }
+    } else {
+      ::std::unique_ptr<BMessage_NodeListEntry_DoNotUse> entry;
+      for (::google::protobuf::Map< ::std::string, ::std::string >::const_iterator
+          it = this->nodelist().begin();
+          it != this->nodelist().end(); ++it) {
+        entry.reset(nodelist_.NewEntryWrapper(
+            it->first, it->second));
+        target = ::google::protobuf::internal::WireFormatLite::
+                   InternalWriteMessageNoVirtualToArray(
+                       3, *entry, deterministic, target);
+;
+        Utf8Check::Check(&*it);
+      }
+    }
+  }
+
   if ((_internal_metadata_.have_unknown_fields() &&  ::google::protobuf::internal::GetProto3PreserveUnknownsDefault())) {
     target = ::google::protobuf::internal::WireFormat::SerializeUnknownFieldsToArray(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()), target);
@@ -302,6 +497,20 @@ size_t BMessage::ByteSizeLong() const {
       ::google::protobuf::internal::WireFormat::ComputeUnknownFieldsSize(
         (::google::protobuf::internal::GetProto3PreserveUnknownsDefault()   ? _internal_metadata_.unknown_fields()   : _internal_metadata_.default_instance()));
   }
+  // map<string, string> nodeList = 3;
+  total_size += 1 *
+      ::google::protobuf::internal::FromIntSize(this->nodelist_size());
+  {
+    ::std::unique_ptr<BMessage_NodeListEntry_DoNotUse> entry;
+    for (::google::protobuf::Map< ::std::string, ::std::string >::const_iterator
+        it = this->nodelist().begin();
+        it != this->nodelist().end(); ++it) {
+      entry.reset(nodelist_.NewEntryWrapper(it->first, it->second));
+      total_size += ::google::protobuf::internal::WireFormatLite::
+          MessageSizeNoVirtual(*entry);
+    }
+  }
+
   // string msg = 2;
   if (this->msg().size() > 0) {
     total_size += 1 +
@@ -343,6 +552,7 @@ void BMessage::MergeFrom(const BMessage& from) {
   ::google::protobuf::uint32 cached_has_bits = 0;
   (void) cached_has_bits;
 
+  nodelist_.MergeFrom(from.nodelist_);
   if (from.msg().size() > 0) {
 
     msg_.AssignWithDefault(&::google::protobuf::internal::GetEmptyStringAlreadyInited(), from.msg_);
@@ -376,6 +586,7 @@ void BMessage::Swap(BMessage* other) {
 }
 void BMessage::InternalSwap(BMessage* other) {
   using std::swap;
+  nodelist_.Swap(&other->nodelist_);
   msg_.Swap(&other->msg_, &::google::protobuf::internal::GetEmptyStringAlreadyInited(),
     GetArenaNoVirtual());
   swap(typeofmessage_, other->typeofmessage_);
@@ -392,6 +603,9 @@ void BMessage::InternalSwap(BMessage* other) {
 }  // namespace MP
 namespace google {
 namespace protobuf {
+template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::MP::BMessage_NodeListEntry_DoNotUse* Arena::CreateMaybeMessage< ::MP::BMessage_NodeListEntry_DoNotUse >(Arena* arena) {
+  return Arena::CreateInternal< ::MP::BMessage_NodeListEntry_DoNotUse >(arena);
+}
 template<> GOOGLE_PROTOBUF_ATTRIBUTE_NOINLINE ::MP::BMessage* Arena::CreateMaybeMessage< ::MP::BMessage >(Arena* arena) {
   return Arena::CreateInternal< ::MP::BMessage >(arena);
 }
