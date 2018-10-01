@@ -237,8 +237,33 @@ void sendPeerList() {
 void acceptPeerRequstAndProcess(int connSock) {
     LOG_ENTRY;
     /* create a thread to receive the messages coming from this peer */
+    int in = 0;
+    char buffer[MAX_BUFFER];
+    memset(buffer,0,sizeof(buffer));
     while(true) {
-
+        in = recvfrom(connSock, buffer, sizeof (buffer), 0, NULL, NULL);
+        if(in == -1) {
+            higLog("%s"," error in recvfrom()");
+        }
+        buffer[in] == '\0';
+        string protocolBuffer = buffer;
+        MP::BMessage msg;
+        msg.ParseFromString(protocolBuffer);
+        if(msg.typeofmessage() != MSG_TYPE_DATA) {
+            higLog("%s"," Not supposed to recv other then actual data");
+        }else {
+            /*
+                1. recved a actual data string
+                2. find hash(string)
+                3. check the existing MAP
+                4. If not found
+                    4.1 Store it in the MAP
+                    4.2 Send to all the four peers
+                    4.3 write to file also
+                    Dont create a thread
+                    do all here only 
+            */
+        }
     }
     LOG_EXIT;    
 }
