@@ -10,8 +10,6 @@
 #define MAX_BACKLOG_REQUEST     100 
 #include <netinet/in.h>
 
-
-
 /* This can be changed to suit the need and should be 
                             same in server and client */
 #include "logging.h"
@@ -236,24 +234,34 @@ void sendPeerList() {
 
     LOG_EXIT;
 }
-void acceptPeerRequstAndProcess() {
+void acceptPeerRequstAndProcess(int connSock) {
     LOG_ENTRY;
     /* create a thread to receive the messages coming from this peer */
+    while(true) {
 
+    }
     LOG_EXIT;    
 }
 
-
-
-int processRequest(string requestBuffer) {
+int processRequest(string requestBuffer,int connSock) {
     LOG_ENTRY;
     MP::BMessage msg;
     msg.ParseFromString(requestBuffer);
     int type = msg.typeOfMessage();
     if(type == MSG_TYPE_GIVE_ME_PEER_LIST) {
-        sendPeerList();
+        sendPeerList(connSock);
+        close(connSock);
     }else if(type == MSG_TYPE_YOU_ARE_MY_PEER) {
-        acceptPeerRequstAndProcess();
+        /* maintain the connSock
+           create a separate thread to handle this peer of type 2
+           I need to loop in a while loop
+           recv() messages from the peer
+           check in the data structure
+           if not found save in the data structure
+           if found : forget this message
+           repreat to recv()     
+        */
+        std::thread handleReplayMessage(acceptPeerRequstAndProcess,connSock);
     }
     LOG_EXIT;
     return SUCCESS;
@@ -394,10 +402,13 @@ int main (int argc, char* argv[]) {
         }else {
             buffer[in] = '\0';
             string requestBuffer = buffer;
-            std::thread newRequestThread(processRequest,requestBuffer);
+            std::thread newRequestThread(processRequest,requestBuffer,connSock);
         }
-        close(connSock); /*  close this connection and go on accepting other requests */
-    }    /* server is running now */
+        /* close(connSock);  No need to close the connection now 
+                            processRequest() will do the required stuff
+                         */
+        /*  close this connection and go on accepting other requests */
+    }   /* server is running now */
 
 
     LOG_EXIT;
