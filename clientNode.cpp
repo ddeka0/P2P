@@ -33,10 +33,10 @@ bool running = false;
 #define SUCCESS                     0
 string myIp = "10.129.135.201";/* FIXME : get my own IP address automatically */
 map<string,string> seedListMap;
-vector<string> totalListofPeers;
 map<string,bool> ExistingMessage;   //can be modified
-set<string> listOfMyPeers;
-set<int> peerSocketsFds;   // type1 peer (my peers)
+vector<string> totalListofPeers;
+vector<string> listOfMyPeers;
+vector<int> peerSocketsFds;   // type1 peer (my peers)
 
 void receiveAndSend() {
     // this is also an infinite loop function
@@ -255,6 +255,7 @@ void acceptPeerRequstAndProcess(int connSock) {
         string protocolBuffer = buffer;
         MP::BMessage msg;
         msg.ParseFromString(protocolBuffer);
+        
         if(msg.typeofmessage() != MSG_TYPE_DATA) {
             higLog("%s"," Not supposed to recv other then actual data");
         }else {
@@ -269,25 +270,23 @@ void acceptPeerRequstAndProcess(int connSock) {
                     Dont create a thread
                     do all here only 
             */
+
            const unsigned char str[] = msg.msg();
            unsigned char hash[SHA_DIGEST_LENGTH]; // == 20
            SHA1(str, sizeof(str) - 1, hash);
+
            if(!ExistingMessage[hash]){
                ExistingMessage[hash] = true;
                //send this message to all 4 peers
                 for(int fd : peerSocketsFds) {
                     int ret = sendto(connSock, buffer, (size_t) datalen, 0,NULL,0);
                     // handle error
-
                 }
            }else{
                //Don't send this message to any peers
            }
-
-
-
-
         }
+    
     }
     LOG_EXIT;    
 }
@@ -347,6 +346,8 @@ void executeOwnWork() {
        Now we need to select 4 peers randomly
     */
 
+    totalListofPeers
+
     // final lise of peers [ includes seedNode as well as normal client ]
     // Select any 4 of them randomly
     // Send "you are my peer" message to the 4 selected peers
@@ -359,12 +360,37 @@ void executeOwnWork() {
         4. send these message to the peerAddr
     */
 
-    for(int peer = 1;peer <= 4;peer++) {
+    // vector<string> totalListofPeers; 
+    // vector<string> listOfMyPeers; 
+    // vector<int> peerSocketsFds; 
+    // shuffel the vector totalListofPeers
+    for(int i = 0;i < 4;i++) {
+        listOfMyPeers.push_back(totalListofPeers[i]);
+    }
+
+    for(string peerIp : listOfMyPeers) {
+        int connSock;
+        connectToASeedNode(connSock,peerIp);    // Name needed to be changed
+        peerSocketsFds.push_back(connSock);
+    }
+
+    //for(int peer = 1;peer <= 4;peer++) {
         /* will it better to create just one thread : and that will broadcast the
          messages to all 4 peers
         */
-        std::thread handlePeerThread(PeerTask,peerAddr);
+    // std::thread handlePeerThread(PeerTask,peerSocketsFds);
+    //}
+    int cnt = 0;
+    while(true) {
+        string msg = "hello" + to_string(msg);
+        for(int peerFD : peerSocketsFds) {
+            int ret = sendto(connSock, buffer, (size_t) datalen, 0,NULL,0);
+        }
+        storeInHash(msg);
+        sleep(5);
+        cnt++;
     }
+
     LOG_EXIT;
 }
 
