@@ -9,12 +9,14 @@
 #define MY_PORT_NUM             54145
 #define MAX_BACKLOG_REQUEST     100 
 #include <netinet/in.h>
+#include <openssl/sha.h>
 
 /* This can be changed to suit the need and should be 
                             same in server and client */
 #include "logging.h"
 #include "seedInfo.pb.h"
 #include "Message.pb.h"
+#include "sha1.h"
 using namespace std;
 // using google::protobuf;
 
@@ -32,7 +34,9 @@ bool running = false;
 string myIp = "10.129.135.201";/* FIXME : get my own IP address automatically */
 map<string,string> seedListMap;
 vector<string> totalListofPeers;
+map<string,bool> ExistingMessage;   //can be modified
 set<string> listOfMyPeers;
+set<int> peerSocketsFds;   // type1 peer (my peers)
 
 void receiveAndSend() {
     // this is also an infinite loop function
@@ -265,6 +269,24 @@ void acceptPeerRequstAndProcess(int connSock) {
                     Dont create a thread
                     do all here only 
             */
+           const unsigned char str[] = msg.msg();
+           unsigned char hash[SHA_DIGEST_LENGTH]; // == 20
+           SHA1(str, sizeof(str) - 1, hash);
+           if(!ExistingMessage[hash]){
+               ExistingMessage[hash] = true;
+               //send this message to all 4 peers
+                for(int fd : peerSocketsFds) {
+                    int ret = sendto(connSock, buffer, (size_t) datalen, 0,NULL,0);
+                    // handle error
+
+                }
+           }else{
+               //Don't send this message to any peers
+           }
+
+
+
+
         }
     }
     LOG_EXIT;    
@@ -288,6 +310,7 @@ int processRequest(string requestBuffer,int connSock) {
            if found : forget this message
            repreat to recv()     
         */
+       
         std::thread handleReplayMessage(acceptPeerRequstAndProcess,connSock);
     }
     LOG_EXIT;
