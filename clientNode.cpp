@@ -208,6 +208,7 @@ int getpeerListFromSeedNodes() {
                 }else {
                     higLog("received peer List from %s",e.second.c_str());
                     auto &Map = msg1.nodelist();
+                    higLog("SIZE OF RECVD LIST : %d",Map.size());
                     for(auto peer : Map) {
                         {
                             std::lock_guard<std::mutex> guard(Mutex_totalListofPeers);
@@ -234,7 +235,7 @@ void sendPeerList(int connSock) {
     auto& Map = *msg.mutable_nodelist();
     {
         std::lock_guard<std::mutex> guard(Mutex_totalListofPeers);
-        higLog("Total length of the list is = %d",totalListofPeers.size());
+       higLog("Total length of the list is !!!!!!!!!!!!! = %d",totalListofPeers.size());
         
         for(string peer : totalListofPeers) {
             Map[peer] = peer;   /* key is not important here */
@@ -322,6 +323,7 @@ int processRequest(string requestBuffer,int connSock,string clientIp) {
         midLog("found request of type MSG_TYPE_GIVE_ME_PEER_LIST");
         {
             std::lock_guard<std::mutex> guard(Mutex_totalListofPeers);   
+            higLog("%s","NEW PEER ADDED TO SEEDNODE >>>>>>>>>>>>>>>>>>>>>>>>");
             totalListofPeers.insert(clientIp);
         }
         sendPeerList(connSock);
@@ -374,13 +376,16 @@ void executeOwnWork() {
     /* shuffel the vector totalListofPeers */ 
     vector<string>tempList;
     {
+        higLog("SIZE>>>>>>>> : %d",totalListofPeers.size());
         tempList.resize(totalListofPeers.size());
         std::lock_guard<std::mutex> guard(Mutex_totalListofPeers);
         std::copy(totalListofPeers.begin(),totalListofPeers.end(),tempList.begin());
     }
     
     std::shuffle(std::begin(tempList), std::end(tempList), rng);
-    
+    for(string x : tempList) {
+        cout << x << endl;
+    }     
     for(int i = 0;i < min((int)tempList.size() , MAX_NUM_PEER);i++) {
         // listOfMyPeers.push_back(tempList[i]);
         {
