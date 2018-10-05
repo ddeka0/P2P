@@ -4,6 +4,7 @@
 #include <stdarg.h>
 #include <unistd.h>
 #include <time.h>
+#include <sys/syscall.h>
 #include "logging.h"
 
 #ifdef  COLOURED_LOGS		//Enable from Makefile
@@ -15,6 +16,8 @@
 #define STYLE_BOLD	""
 #define STYLE_RESET	""
 #endif  /*COLOURED_LOGS*/
+
+#define gettid() syscall(SYS_gettid)
 
 /* main logging function, DONT USE DIRECTLY, use wrappers */
 void platformLog(int logLevel, const char* file, int line,
@@ -53,7 +56,7 @@ void platformLog(int logLevel, const char* file, int line,
 	printf("%s%s%c  PID:%d  %s\t%s:%d %s:   ",
 			logLevel >= 1 ? STYLE_BOLD : "",
 			logLevel == 2 ? STYLE_RED  : "",
-			logLevelChars[logLevel], getpid(), timeBuff,
+			logLevelChars[logLevel], gettid(), timeBuff,
 			file, line, func);
 	va_start (arg, logMsg);
 	vfprintf (stdout, logMsg, arg);
