@@ -284,6 +284,7 @@ void acceptPeerRequstAndProcess(int connSock) {
     int in = 0;
     char buffer[MAX_BUFFER];
     memset(buffer,0,sizeof(buffer));
+    higLog("%s","----------------------------------------------------------------");
     while(true) {
         in = recvfrom(connSock, buffer, sizeof (buffer), 0, NULL, NULL);
         if(in == -1) {
@@ -395,11 +396,28 @@ void executeOwnWork() {
             peerSocketsFds.push_back(connSock);
         }
     }
-    higLog("size of peerSocketsFds = %d",peerSocketsFds.size());
+    /* SEND the you are my peer message */
     char buffer[MAX_BUFFER];
+    MP::BMessage msg;
+    msg.set_typeofmessage(MSG_TYPE_YOU_ARE_MY_PEER);
+    string protocolBuffer = msg.SerializeAsString();
+    int datalen = protocolBuffer.length();
+    sprintf(buffer, "%s", protocolBuffer.c_str());
+    for(int peerFD : peerSocketsFds) {
+        int ret = sendto(peerFD, buffer, (size_t) datalen, 0,NULL,0);
+        if(ret == -1) {
+            higLog("sendto() failed");
+            continue;
+        }else {
+            higLog("sent to %d MSG_TYPE_YOU_ARE_MY_PEER request",peerFD);
+        }
+    }
+    higLog("size of peerSocketsFds = %d",peerSocketsFds.size());
+    memset(buffer,0,sizeof(buffer));
     long long int cnt = 0;
     while(true) {
         /* generate a random message */
+
         MP::BMessage msg;
         msg.set_typeofmessage(MSG_TYPE_DATA);
         /* generate a random message */
@@ -423,6 +441,7 @@ void executeOwnWork() {
         HashTable.insert(str);
         cnt++;
         memset(buffer,0,sizeof(buffer));
+        sleep(5);
     }
     LOG_EXIT;
 }
