@@ -5,9 +5,12 @@
 #include <netinet/in.h>
 #include <netinet/sctp.h>
 #include <arpa/inet.h>
+#include <random>
+
 #define MAX_BUFFER              3000
-#define MY_PORT_NUM             54145
-#define MAX_BACKLOG_REQUEST     100 
+#define MY_PORT_NUM             60000
+#define MAX_BACKLOG_REQUEST     100
+#define MAX_NUM_PEER            4 
 #include <netinet/in.h>
 #include <openssl/sha.h>
 
@@ -16,7 +19,7 @@
 #include "logging.h"
 #include "seedInfo.pb.h"
 #include "Message.pb.h"
-#include "sha1.h"
+//#include "sha1.h"
 using namespace std;
 // using google::protobuf;
 
@@ -27,7 +30,7 @@ bool running = false;
 #define MSG_TYPE_GIVE_ME_PEER_LIST  1
 #define MSG_TYPE_YOU_ARE_MY_PEER    2
 #define MSG_TYPE_DATA               3
-#define WAIT_FOR_MY_SERVER_TO_START 2
+#define WAIT_FOR_MY_SERVER_TO_START 10
 
 #define FAILURE                     -1
 #define SUCCESS                     0
@@ -36,21 +39,8 @@ map<string,string> seedListMap;
 map<string,bool> ExistingMessage;   //can be modified
 vector<string> totalListofPeers;
 vector<string> listOfMyPeers;
-vector<int> peerSocketsFds;   // type1 peer (my peers)
-
-void receiveAndSend() {
-    // this is also an infinite loop function
-    // this thread will loop in a while loop
-    // recv() for incoming message 
-    // process that message
-    // check the Map data structure
-    // if not found then send to all its peers
-    // repeat this process infinitely
-    while(running) {
-        
-    }  
-}
-
+vector<int> peerSocketsFds;         /*direct peers*/   
+set<string> HashTable;
 
 int getSeedNodeList() {
     LOG_ENTRY;
@@ -70,7 +60,7 @@ int getSeedNodeList() {
     bzero ((void *) &servaddr, sizeof (servaddr));
     servaddr.sin_family = AF_INET;
     servaddr.sin_port = htons (MY_PORT_NUM);
-    servaddr.sin_addr.s_addr = inet_addr("10.129.135.192");
+    servaddr.sin_addr.s_addr = inet_addr("10.129.135.192"); /* this is the IP of seedNodeListProvider*/
     ret = connect (connSock, (struct sockaddr *) &servaddr, sizeof (servaddr));
     if (ret == -1) {
         /* FIXME : print nicely */
@@ -151,45 +141,45 @@ int connectToASeedNode(int &connSock,string seedNodeServerIp) {
     return SUCCESS;
 }
 
-void PeerTask(string peerAddr) {
-    LOG_ENTRY;
-    /* act as a client */
-    int connSock, in, i, ret, flags;
-    struct sockaddr_in servaddr;
-    struct sctp_status status;
-    struct sctp_sndrcvinfo sndrcvinfo;
-    char buffer[MAX_BUFFER + 1];
-    int datalen = 0;
+// void PeerTask(string peerAddr) {
+//     LOG_ENTRY;
+//     /* act as a client */
+//     int connSock, in, i, ret, flags;
+//     struct sockaddr_in servaddr;
+//     struct sctp_status status;
+//     struct sctp_sndrcvinfo sndrcvinfo;
+//     char buffer[MAX_BUFFER + 1];
+//     int datalen = 0;
 
-    connSock = socket (AF_INET, SOCK_STREAM, IPPROTO_SCTP);
-    if (connSock == -1) {
-        printf("Socket creation failed\n");
-        perror("socket()");
-        exit(1);
-    }
-    bzero ((void *) &servaddr, sizeof (servaddr));
-    servaddr.sin_family = AF_INET;
-    servaddr.sin_port = htons (MY_PORT_NUM);
-    servaddr.sin_addr.s_addr = inet_addr(peerAddr.c_str());
-    ret = connect (connSock, (struct sockaddr *) &servaddr, sizeof (servaddr));
+//     connSock = socket (AF_INET, SOCK_STREAM, IPPROTO_SCTP);
+//     if (connSock == -1) {
+//         printf("Socket creation failed\n");
+//         perror("socket()");
+//         exit(1);
+//     }
+//     bzero ((void *) &servaddr, sizeof (servaddr));
+//     servaddr.sin_family = AF_INET;
+//     servaddr.sin_port = htons (MY_PORT_NUM);
+//     servaddr.sin_addr.s_addr = inet_addr(peerAddr.c_str());
+//     ret = connect (connSock, (struct sockaddr *) &servaddr, sizeof (servaddr));
     
-    if (ret == -1) {
-        printf("Connection failed\n");
-        perror("connect()");
-        close(connSock);
-        exit(1);
-    }else {
-        lowLog("%s"," connection successfull with the peer\n");
-    }
-    while(true) {
-        /*
-            1. generate one message
-            2. send to this peer
-            3. Store the message in the data structure
-        */
-    }
-    LOG_EXIT;
-}
+//     if (ret == -1) {
+//         printf("Connection failed\n");
+//         perror("connect()");
+//         close(connSock);
+//         exit(1);
+//     }else {
+//         lowLog("%s"," connection successfull with the peer\n");
+//     }
+//     while(true) {
+//         /*
+//             1. generate one message
+//             2. send to this peer
+//             3. Store the message in the data structure
+//         */
+//     }
+//     LOG_EXIT;
+// }
 
 int getpeerListFromSeedNodes() {
     LOG_ENTRY;
@@ -259,34 +249,22 @@ void acceptPeerRequstAndProcess(int connSock) {
         if(msg.typeofmessage() != MSG_TYPE_DATA) {
             higLog("%s"," Not supposed to recv other then actual data");
         }else {
-            /*
-                1. recved a actual data string
-                2. find hash(string)
-                3. check the existing MAP
-                4. If not found
-                    4.1 Store it in the MAP
-                    4.2 Send to all the four peers
-                    4.3 write to file also
-                    Dont create a thread
-                    do all here only 
-            */
 
-           const unsigned char str[] = msg.msg();
-           unsigned char hash[SHA_DIGEST_LENGTH]; // == 20
-           SHA1(str, sizeof(str) - 1, hash);
-
-           if(!ExistingMessage[hash]){
-               ExistingMessage[hash] = true;
-               //send this message to all 4 peers
+            unsigned char hash[SHA_DIGEST_LENGTH];
+            SHA1(reinterpret_cast<const unsigned char *>(msg.msg().c_str()), msg.msg().length(), hash);
+            std::string str(hash,hash + SHA_DIGEST_LENGTH);
+            int datalen = msg.msg().length();
+            if(HashTable.find(str) == HashTable.end()) {
+                HashTable.insert(str);
+                /* send this message to all 4 peers */
                 for(int fd : peerSocketsFds) {
                     int ret = sendto(connSock, buffer, (size_t) datalen, 0,NULL,0);
-                    // handle error
+                    higLog("%s",to_string(ret) + " bytes send to one peer");
                 }
-           }else{
-               //Don't send this message to any peers
-           }
+            }else{
+                /* Don't send this message to any peers */
+            }
         }
-    
     }
     LOG_EXIT;    
 }
@@ -300,17 +278,9 @@ int processRequest(string requestBuffer,int connSock) {
         sendPeerList(connSock);
         close(connSock);
     }else if(type == MSG_TYPE_YOU_ARE_MY_PEER) {
-        /* maintain the connSock
-           create a separate thread to handle this peer of type 2
-           I need to loop in a while loop
-           recv() messages from the peer
-           check in the data structure
-           if not found save in the data structure
-           if found : forget this message
-           repreat to recv()     
-        */
-       
+
         std::thread handleReplayMessage(acceptPeerRequstAndProcess,connSock);
+    
     }
     LOG_EXIT;
     return SUCCESS;
@@ -318,6 +288,8 @@ int processRequest(string requestBuffer,int connSock) {
 
 void executeOwnWork() {
 
+    auto rng = std::default_random_engine {};
+    
     sleep(WAIT_FOR_MY_SERVER_TO_START);
     /*
         ANY PEER : seedNode or normal client must ask for seedNodeList from 
@@ -345,59 +317,42 @@ void executeOwnWork() {
     /* Got a final list of possible peers
        Now we need to select 4 peers randomly
     */
-
-    totalListofPeers
-
-    // final lise of peers [ includes seedNode as well as normal client ]
-    // Select any 4 of them randomly
-    // Send "you are my peer" message to the 4 selected peers
-    // start separate thread (4) for all of them
-    // those threads will do the following:
-    /*
-        1. Create a TCP connection with the peerAddr
-        2. Loop in a infite loop
-        3. Generate BITCOIN transaction Message at an interval of 5 sec.
-        4. send these message to the peerAddr
-    */
-
-    // vector<string> totalListofPeers; 
-    // vector<string> listOfMyPeers; 
-    // vector<int> peerSocketsFds; 
-    // shuffel the vector totalListofPeers
-    for(int i = 0;i < 4;i++) {
+    /* shuffel the vector totalListofPeers */ 
+    std::shuffle(std::begin(totalListofPeers), std::end(totalListofPeers), rng);
+    
+    for(int i = 0;i < MAX_NUM_PEER;i++) {
         listOfMyPeers.push_back(totalListofPeers[i]);
     }
-
     for(string peerIp : listOfMyPeers) {
         int connSock;
         connectToASeedNode(connSock,peerIp);    // Name needed to be changed
         peerSocketsFds.push_back(connSock);
     }
-
-    //for(int peer = 1;peer <= 4;peer++) {
-        /* will it better to create just one thread : and that will broadcast the
-         messages to all 4 peers
-        */
-    // std::thread handlePeerThread(PeerTask,peerSocketsFds);
-    //}
-    int cnt = 0;
+    char buffer[MAX_BUFFER];
+    long long int cnt = 0;
     while(true) {
-        string msg = "hello" + to_string(msg);
+        /* generate a random message */
+        string msg = "hello" + to_string(cnt);
+        int datalen = msg.length();
+        memcpy(buffer,msg.c_str(),datalen);
         for(int peerFD : peerSocketsFds) {
-            int ret = sendto(connSock, buffer, (size_t) datalen, 0,NULL,0);
+            int ret = sendto(peerFD, buffer, (size_t) datalen, 0,NULL,0);
         }
-        storeInHash(msg);
+        unsigned char hash[SHA_DIGEST_LENGTH];
+        SHA1(reinterpret_cast<const unsigned char *>(msg.c_str()), msg.length(), hash);
+        std::string str(hash,hash + SHA_DIGEST_LENGTH);
+        HashTable.insert(str);
         sleep(5);
         cnt++;
+        memset(buffer,0,sizeof(buffer));
     }
-
     LOG_EXIT;
 }
 
 int main (int argc, char* argv[]) {
     LOG_ENTRY;
-    std::thread myTask(executeOwnWork); /* detach or join : decide and fix later */
-    
+    //std::thread myTask(executeOwnWork);/*detach or join : decide and fix later*/
+    //myTask.detach();
     /*
         First create a server socket that listens in a while loop
         recv packets -- process -- executes
@@ -406,8 +361,6 @@ int main (int argc, char* argv[]) {
        <=======================================================================>    
     
     */
-   
-
     int listenSock, connSock, ret, in, flags, i;
     struct sockaddr_in servaddr;
     struct sctp_initmsg initmsg;
@@ -425,6 +378,8 @@ int main (int argc, char* argv[]) {
     if (setsockopt(listenSock, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) == -1) {
         higLog("%s","setsockopt() failed");
         exit(EXIT_FAILURE);
+    }else {
+        higLog("%s"," setsockopt success");
     }
 
     bzero ((void *) &servaddr, sizeof (servaddr));
@@ -481,12 +436,7 @@ int main (int argc, char* argv[]) {
             string requestBuffer = buffer;
             std::thread newRequestThread(processRequest,requestBuffer,connSock);
         }
-        /* close(connSock);  No need to close the connection now 
-                            processRequest() will do the required stuff
-                         */
-        /*  close this connection and go on accepting other requests */
     }   /* server is running now */
-
 
     LOG_EXIT;
     return 0;
