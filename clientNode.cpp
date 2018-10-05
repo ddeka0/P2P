@@ -5,6 +5,7 @@
 #include <netinet/in.h>
 #include <netinet/sctp.h>
 #include <arpa/inet.h>
+#include <stdlib.h>
 #include <random>
 #include <mutex>
 
@@ -382,7 +383,7 @@ void executeOwnWork() {
         std::copy(totalListofPeers.begin(),totalListofPeers.end(),tempList.begin());
     }
     
-    std::shuffle(std::begin(tempList), std::end(tempList), rng);
+    // std::shuffle(std::begin(tempList), std::end(tempList), rng);
     for(string x : tempList) {
         cout << x << endl;
     }     
@@ -390,7 +391,8 @@ void executeOwnWork() {
         // listOfMyPeers.push_back(tempList[i]);
         {
             //std::lock_guard<std::mutex> guard(Mutex_listOfMyPeers);
-            listOfMyPeers.insert(tempList[i]); /* listOfMyPeers is a set */
+            int idx = rand()%((int)tempList.size());
+            listOfMyPeers.insert(tempList[idx]); /* listOfMyPeers is a set */
         }
     }
     // prepapre the socket fd for final connextions 
@@ -463,6 +465,7 @@ void executeOwnWork() {
 
 int main (int argc, char* argv[]) {
     LOG_ENTRY;
+    srand(time(NULL));
     std::thread myTask(executeOwnWork);/*detach or join : decide and fix later*/
     myTask.detach();
     /*
