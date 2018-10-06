@@ -258,7 +258,7 @@ void sendPeerList(int connSock) {
     LOG_EXIT;
 }
 
-void acceptPeerRequstAndProcess(int connSock) {
+void acceptPeerRequstAndProcess(int connSock , string clientIp) {
     LOG_ENTRY;
     /* create a thread to receive the messages coming from this peer */
     int in = 0;
@@ -267,9 +267,13 @@ void acceptPeerRequstAndProcess(int connSock) {
     higLog("%s","----------------------------------------------------------------");
     while(true) {
         in = recvfrom(connSock, buffer, sizeof (buffer), 0, NULL, NULL);
-        if(in == -1) {
+        // check for -1 is wrong this is sctp not tcp
+        // it will return 0 on error or 0 byte
+        cout << errno << endl;
+        if(in <= 0) {
             higLog("%s"," error in recvfrom()");
-            continue;
+            cout<<"Client Ip: "<<clientIp<<" died."<<endl;
+            break;
         }
         buffer[in] == '\0';
         string protocolBuffer = buffer;
@@ -282,7 +286,7 @@ void acceptPeerRequstAndProcess(int connSock) {
         if(msg.typeofmessage() != MSG_TYPE_DATA) {
             higLog("%s"," Not supposed to recv other then actual data");
         }else {
-            midLog("received %s",msg.msg().c_str());
+            midLog("received %s from %s",msg.msg().c_str(),clientIp.c_str());
             unsigned char hash[SHA_DIGEST_LENGTH];
             SHA1(reinterpret_cast<const unsigned char *>(msg.msg().c_str()), msg.msg().length(), hash);
             std::string str(hash,hash + SHA_DIGEST_LENGTH);
@@ -332,7 +336,7 @@ int processRequest(string requestBuffer,int connSock,string clientIp) {
     }else if(type == MSG_TYPE_YOU_ARE_MY_PEER) {
         midLog("found request of type MSG_TYPE_YOU_ARE_MY_PEER");
         /* follwoing function will loop infinitely */
-        acceptPeerRequstAndProcess(connSock);
+        acceptPeerRequstAndProcess(connSock, clientIp);
         //handleReplayMessage.detach();
     }
     LOG_EXIT;
@@ -442,7 +446,7 @@ void executeOwnWork() {
         sprintf(buffer, "%s", protocolBuffer.c_str());
         for(int peerFD : peerSocketsFds) {
             int ret = sendto(peerFD, buffer, (size_t) datalen, 0,NULL,0);
-            if(ret == -1) {
+            if(ret <= 0) {
                 higLog("sendto() failed");
                 continue;
             }else {
@@ -465,6 +469,7 @@ void executeOwnWork() {
 
 int main (int argc, char* argv[]) {
     LOG_ENTRY;
+    signal(SIGPIPE, SIG_IGN);
     //srand(time(NULL));
     std::thread myTask(executeOwnWork);/*detach or join : decide and fix later*/
     myTask.detach();
