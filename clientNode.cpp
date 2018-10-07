@@ -101,7 +101,7 @@ int getSeedNodeList() {
     */
     if(in <= 0) {
         /* FIXME : print nicely */
-        cout << errno << endl;
+        //cout << errno << endl;
         higLog("%s"," sctp_recvmsg() failed");
         /* FIXME do we need to return some error value form this place ? */
     }else {
@@ -240,7 +240,7 @@ int getpeerListFromSeedNodes() {
             /* received the totalListofPeers from the peer server/client :) */
             // Add this to the totalList
             if(in <= 0 ) {
-                cout << errno << endl;
+                //cout << errno << endl;
                 higLog("%s"," sctp_recvmsg() failed");
             }else {
                 buffer[in] = '\0';
@@ -314,7 +314,7 @@ void acceptPeerRequstAndProcess(int connSock, string clientIp) {
         in = recvfrom(connSock, buffer, sizeof (buffer), 0, NULL, NULL);
         // check for -1 is wrong this is sctp not tcp
         // it will return 0 on error or 0 byte
-        cout << errno << endl;
+        //cout << errno << endl;
         if(in <= 0) {
             higLog("%s"," error in recvfrom()");
             cout<<"Client Ip: "<<clientIp<<" died."<<endl;
@@ -605,7 +605,7 @@ int main (int argc, char* argv[]) {
         }
         in = recvfrom(connSock, buffer, sizeof (buffer), 0, NULL, NULL);
         if(in <= 0 ){
-            cout << errno << endl;
+            //cout << errno << endl;
             higLog("%s"," sctp_recvmsg() failed");
         }else {
             midLog("Message recved from client :%s",clientIp.c_str());
