@@ -360,6 +360,7 @@ void acceptPeerRequstAndProcess(int connSock, string clientIp) {
                 }
             }else{
                 /* Don't send this message to any peers */
+                higLog("%s","Message Alreay existing");
             }
         }
     }
