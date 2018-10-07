@@ -4,8 +4,8 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <netinet/sctp.h>
-#include <arpa/inet.h>
 #include <stdlib.h>
+#include <arpa/inet.h>
 #include <random>
 #include <mutex>
 
@@ -39,7 +39,8 @@ map<string,string> seedListMap;
 map<string,bool> ExistingMessage;   //can be modified
 set<string> totalListofPeers;
 set<string> listOfMyPeers;
-vector<int> peerSocketsFds;         /*direct peers*/   
+vector<pair<int,string>> peerSocketsFds;         /*fd,ip*/   
+vector<int> failedPeerFds;         
 set<string> HashTable;
 
 std::mutex Mutex_ExistingMessage;
@@ -48,6 +49,16 @@ std::mutex Mutex_listOfMyPeers;
 std::mutex Mutex_peerSocketsFds;
 std::mutex Mutex_HashTable;
 
+
+
+string generate_msg(string Ip) {
+	long int current_timestamp = static_cast<long int> (time(0));
+	string msg;
+	char random_ip[20];
+	sprintf(random_ip, "%d:%d:%d:%d", rand()&0xFF, rand()&0xFF, rand()&0xFF, rand()&0xFF);	
+	msg = to_string(current_timestamp) + ": " + Ip + " pays " + to_string(rand()%1000) + " BTC to " + string(random_ip);
+	return msg;
+}
 
 int getSeedNodeList() {
     LOG_ENTRY;
@@ -88,7 +99,7 @@ int getSeedNodeList() {
         use proper functions
         get the IP from the sender and print it to the console
     */
-    if(in == -1) {
+    if(in <= 0) {
         /* FIXME : print nicely */
         cout << errno << endl;
         higLog("%s"," sctp_recvmsg() failed");
@@ -159,6 +170,39 @@ int connectToASeedNode(int &connSock,string seedNodeServerIp) {
     return SUCCESS;
 }
 
+int connectToPeer(int &connSock,string seedNodeServerIp) {
+    /*
+        1. Create socket : store the socketFD in the connSock arg
+        2. Connect to the serverIp (it is a seedNode server)
+    */
+    int in, i, ret, flags;
+    struct sockaddr_in servaddr;
+    struct sctp_status status;
+    struct sctp_sndrcvinfo sndrcvinfo;
+    char buffer[MAX_BUFFER + 1];
+    int datalen = 0;
+
+    connSock = socket (AF_INET, SOCK_STREAM, IPPROTO_SCTP);
+    if (connSock == -1) {
+        higLog("%s"," Socket creation failed");
+        return FAILURE;
+    }
+    bzero ((void *) &servaddr, sizeof (servaddr));
+    servaddr.sin_family = AF_INET;
+    servaddr.sin_port = htons (MY_PORT_NUM);
+    servaddr.sin_addr.s_addr = inet_addr(seedNodeServerIp.c_str());
+    ret = connect (connSock, (struct sockaddr *) &servaddr, sizeof (servaddr));
+    /* connect may fail initially : TODO handle later */
+    if (ret == -1) {
+        higLog("%s"," Connection failed");
+        close(connSock);
+        return FAILURE;
+    }else {
+        lowLog("Connection successfull to the PeerNode %s",seedNodeServerIp.c_str());
+        lowLog("%s","Furthe Message will be broadcasted to this peernode");
+    }
+    return SUCCESS;
+}
 
 int getpeerListFromSeedNodes() {
     LOG_ENTRY;
@@ -172,8 +216,9 @@ int getpeerListFromSeedNodes() {
         size_t datalen = 0;
         if(e.second != myIp) {
             if(connectToASeedNode(connSock,e.second) < 0 ) {
-                higLog("%s"," connect to " + e.second + " failed");
+                higLog("connect to %s failed",e.second.c_str());
                 /* FIXME later */
+                continue;
             }
             /* preprare a message : give peer list */
             MP::BMessage msg;
@@ -185,8 +230,8 @@ int getpeerListFromSeedNodes() {
             /* send this buffer over the sctp socket to the seedNode*/
             int ret = sendto(connSock, buffer, (size_t) datalen, 0,NULL,0);
             /* this send will invoke the processRequest() function and sendPeerList() */
-            if(ret == -1) {
-                higLog("%s"," sendto() failed");
+            if(ret <= 0) {
+                //higLog("%s"," sendto() failed");
                 return FAILURE;
             }
             /* expecting a reply from the seedNode */
@@ -194,7 +239,7 @@ int getpeerListFromSeedNodes() {
             in = recvfrom(connSock, buffer, sizeof (buffer), 0, NULL, NULL);
             /* received the totalListofPeers from the peer server/client :) */
             // Add this to the totalList
-            if(in == -1 ) {
+            if(in <= 0 ) {
                 cout << errno << endl;
                 higLog("%s"," sctp_recvmsg() failed");
             }else {
@@ -236,7 +281,7 @@ void sendPeerList(int connSock) {
     auto& Map = *msg.mutable_nodelist();
     {
         std::lock_guard<std::mutex> guard(Mutex_totalListofPeers);
-       higLog("Total length of the list is !!!!!!!!!!!!! = %d",totalListofPeers.size());
+        higLog("Total length of the list is !!!!!!!!!!!!! = %d",totalListofPeers.size());
         
         for(string peer : totalListofPeers) {
             Map[peer] = peer;   /* key is not important here */
@@ -247,8 +292,8 @@ void sendPeerList(int connSock) {
     int datalen = protocolBuffer.length();
     sprintf(buffer, "%s", protocolBuffer.c_str());
     int ret = sendto(connSock, buffer, (size_t) datalen, 0,NULL,0);
-    if(ret == -1) {
-        higLog("%s"," sendto() failed aborting !!!");
+    if(ret <=0 ) {
+        higLog("%s"," sendto() failed aborting");
         return;
     }else {
         higLog("List is sent to the client :");
@@ -258,9 +303,9 @@ void sendPeerList(int connSock) {
     LOG_EXIT;
 }
 
-void acceptPeerRequstAndProcess(int connSock , string clientIp) {
+void acceptPeerRequstAndProcess(int connSock, string clientIp) {
     LOG_ENTRY;
-    /* create a thread to receive the messages coming from this peer */
+  
     int in = 0;
     char buffer[MAX_BUFFER];
     memset(buffer,0,sizeof(buffer));
@@ -303,13 +348,15 @@ void acceptPeerRequstAndProcess(int connSock , string clientIp) {
                     HashTable.insert(str);
                 }
                 /* send this message to all 4 peers */
-                for(int fd : peerSocketsFds) {
-                    int ret = sendto(connSock, buffer, (size_t) datalen, 0,NULL,0);
-                    if(ret == -1) {
-                        higLog("%s"," sendto() failed");
+                for(auto fdIp : peerSocketsFds) {
+                    int ret = sendto(fdIp.first, buffer, (size_t) datalen, 0,NULL,0);
+                    if(ret <= 0) {
+                        //higLog("%s"," sendto() failed");
+                        //failedPeerFds[fd]=true;
                         return;
+                    }else {
+                        higLog("Replayed %s to %s",msg.msg().c_str(),fdIp.second.c_str());
                     }                    
-                    higLog("bytes send to one peer %d",ret);
                 }
             }else{
                 /* Don't send this message to any peers */
@@ -336,7 +383,7 @@ int processRequest(string requestBuffer,int connSock,string clientIp) {
     }else if(type == MSG_TYPE_YOU_ARE_MY_PEER) {
         midLog("found request of type MSG_TYPE_YOU_ARE_MY_PEER");
         /* follwoing function will loop infinitely */
-        acceptPeerRequstAndProcess(connSock, clientIp);
+        acceptPeerRequstAndProcess(connSock,clientIp);
         //handleReplayMessage.detach();
     }
     LOG_EXIT;
@@ -386,15 +433,15 @@ void executeOwnWork() {
         std::lock_guard<std::mutex> guard(Mutex_totalListofPeers);
         std::copy(totalListofPeers.begin(),totalListofPeers.end(),tempList.begin());
     }
+    
     std::shuffle(std::begin(tempList), std::end(tempList), std::default_random_engine(time(NULL)));
-    // std::shuffle(std::begin(tempList), std::end(tempList), rng);
     for(string x : tempList) {
         cout << x << endl;
-    }     
+    }
+
     for(int i = 0;i < min((int)tempList.size() , MAX_NUM_PEER);i++) {
         // listOfMyPeers.push_back(tempList[i]);
         {
-            //std::lock_guard<std::mutex> guard(Mutex_listOfMyPeers);
             //int idx = rand()%((int)tempList.size());
             listOfMyPeers.insert(tempList[i]); /* listOfMyPeers is a set */
         }
@@ -403,10 +450,10 @@ void executeOwnWork() {
     for(string peerIp :  listOfMyPeers  ) {
         if(peerIp != myIp) {
             int connSock;
-            connectToASeedNode(connSock,peerIp);    // Name needed to be changed
+            connectToPeer(connSock,peerIp);    // Name needed to be changed
             {
                 //std::lock_guard<std::mutex> guard(Mutex_peerSocketsFds);
-                peerSocketsFds.push_back(connSock);    
+                peerSocketsFds.push_back(make_pair(connSock,peerIp));    
             }
         }
     }
@@ -418,13 +465,13 @@ void executeOwnWork() {
     int datalen = protocolBuffer.length();
     sprintf(buffer, "%s", protocolBuffer.c_str());
     
-    for(int peerFD : peerSocketsFds) {
-        int ret = sendto(peerFD, buffer, (size_t) datalen, 0,NULL,0);
-        if(ret == -1) {
-            higLog("sendto() failed");
+    for(auto peerfdIp : peerSocketsFds) {
+        int ret = sendto(peerfdIp.first, buffer, (size_t) datalen, 0,NULL,0);
+        if(ret <= 0) {
+            //higLog("sendto() failed");
             continue;
         }else {
-            higLog("sent to %d MSG_TYPE_YOU_ARE_MY_PEER request",peerFD);
+            higLog("sent to %d MSG_TYPE_YOU_ARE_MY_PEER request",peerfdIp.second.c_str());
         }
     }
 
@@ -434,23 +481,26 @@ void executeOwnWork() {
     }
     memset(buffer,0,sizeof(buffer));
     long long int cnt = 0;
+    std::ofstream outfile(myIp + "out_file.txt");
     while(true) {
         /* generate a random message */
         MP::BMessage msg;
         msg.set_typeofmessage(MSG_TYPE_DATA);
         /* generate a random message */
-        string dataMsg = "Hello " + to_string(cnt);
+        //string dataMsg = "Hello " + to_string(cnt);
+        string dataMsg = generate_msg(myIp);
         msg.set_msg(dataMsg);
         string protocolBuffer = msg.SerializeAsString();
         int datalen = protocolBuffer.length();
         sprintf(buffer, "%s", protocolBuffer.c_str());
-        for(int peerFD : peerSocketsFds) {
-            int ret = sendto(peerFD, buffer, (size_t) datalen, 0,NULL,0);
+        for(auto peerFDIp : peerSocketsFds) {
+            int ret = sendto(peerFDIp.first, buffer, (size_t) datalen, 0,NULL,0);
             if(ret <= 0) {
-                higLog("sendto() failed");
+                //higLog("sendto() failed");
                 continue;
             }else {
-                higLog("sent to %d",peerFD);
+                higLog("sent %s to %s",msg.msg().c_str(),peerFDIp.second.c_str());
+                outfile << dataMsg << endl;
             }
         }
         unsigned char hash[SHA_DIGEST_LENGTH];
@@ -470,7 +520,7 @@ void executeOwnWork() {
 int main (int argc, char* argv[]) {
     LOG_ENTRY;
     signal(SIGPIPE, SIG_IGN);
-    //srand(time(NULL));
+    srand(time(NULL));
     std::thread myTask(executeOwnWork);/*detach or join : decide and fix later*/
     myTask.detach();
     /*
@@ -553,7 +603,7 @@ int main (int argc, char* argv[]) {
             higLog("Request came from client : %s",clientIp.c_str());
         }
         in = recvfrom(connSock, buffer, sizeof (buffer), 0, NULL, NULL);
-        if(in == -1 ){
+        if(in <= 0 ){
             cout << errno << endl;
             higLog("%s"," sctp_recvmsg() failed");
         }else {
