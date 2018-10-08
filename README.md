@@ -37,8 +37,8 @@ How To Run Binary ?
     run seedInfoServer by running the command ./seedInfoServer
     run clientNode     by running the command ./clientNode
         
-Notes : 
-I used the a common message format across all types of message transfer:
+Notes :
+I used a common message format across all types of message transfer:
 
 
     message {
